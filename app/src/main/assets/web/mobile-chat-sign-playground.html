@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <title>抽到啥就聊啥</title>
+    <style>
+      :root {
+        --app-height: 100vh;
+        --paper: #f7e1c0;
+        --muted: rgba(247, 225, 192, 0.68);
+        --gold-1: #f4c68e;
+        --gold-2: #da9453;
+        --gold-3: #8b5228;
+        --line: rgba(255, 213, 161, 0.14);
+        --panel: rgba(56, 31, 20, 0.9);
+        --bg-a: #140b07;
+        --bg-b: #2a140d;
+        --bg-c: #452118;
+      }
+
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: #120905;
+        color: var(--paper);
+        font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      }
+
+      body {
+        overflow: hidden;
+      }
+
+      body.couple {
+        --gold-1: #f5c99f;
+        --gold-2: #d8935a;
+        --gold-3: #8d5530;
+      }
+
+      body.party {
+        --gold-1: #f0c185;
+        --gold-2: #ca8448;
+        --gold-3: #7f4a24;
+      }
+
+      .app {
+        position: relative;
+        width: 100%;
+        max-width: 520px;
+        height: var(--app-height);
+        margin: 0 auto;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 50% 10%, rgba(245, 192, 129, 0.14), transparent 18%),
+          radial-gradient(circle at 76% 42%, rgba(255, 165, 84, 0.08), transparent 16%),
+          linear-gradient(180deg, var(--bg-a) 0%, var(--bg-b) 42%, var(--bg-c) 76%, #1a0e0a 100%);
+      }
+
+      .app::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(rgba(255, 255, 255, 0.014) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.014) 1px, transparent 1px);
+        background-size: 34px 34px;
+        opacity: 0.16;
+        pointer-events: none;
+      }
+
+      .shell {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        padding:
+          calc(16px + env(safe-area-inset-top))
+          16px
+          calc(16px + env(safe-area-inset-bottom));
+      }
+
+      .topbar {
+        text-align: center;
+        position: relative;
+        z-index: 4;
+      }
+
+      .title {
+        margin: 0;
+        font-size: 32px;
+        line-height: 1;
+        font-weight: 800;
+        letter-spacing: 2px;
+      }
+
+      .subtitle {
+        margin-top: 10px;
+        font-size: 13px;
+        letter-spacing: 3px;
+        color: var(--muted);
+      }
+
+      .modes {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        margin-top: 14px;
+        padding: 5px;
+        border-radius: 22px;
+        background: rgba(42, 24, 16, 0.68);
+        border: 1px solid var(--line);
+      }
+
+      .mode {
+        border: 0;
+        border-radius: 18px;
+        padding: 12px 10px;
+        background: transparent;
+        color: rgba(247, 225, 192, 0.7);
+      }
+
+      .mode strong {
+        display: block;
+        font-size: 16px;
+        line-height: 1.1;
+        font-weight: 800;
+      }
+
+      .mode span {
+        display: block;
+        margin-top: 4px;
+        font-size: 11px;
+      }
+
+      .mode.active {
+        color: #2d170b;
+        background: linear-gradient(180deg, var(--gold-1) 0%, var(--gold-2) 100%);
+        box-shadow: inset 0 1px 0 rgba(255, 249, 235, 0.3);
+      }
+
+      .stage {
+        position: relative;
+        flex: 1 1 auto;
+        min-height: 294px;
+        margin-top: 12px;
+        padding-top: 54px;
+      }
+
+      .ambient {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+
+      .ambient::before {
+        content: "";
+        position: absolute;
+        right: 10%;
+        top: 34%;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(237, 146, 66, 0.16), transparent 68%);
+        filter: blur(8px);
+      }
+
+      .hero-wrap {
+        position: absolute;
+        left: 50%;
+        bottom: -4px;
+        width: min(82%, 320px);
+        height: min(calc(100% - 48px), 366px);
+        transform: translateX(-50%);
+      }
+
+      .scene-glow {
+        position: absolute;
+        left: 50%;
+        bottom: 46px;
+        width: 56%;
+        height: 42px;
+        transform: translateX(-50%);
+        border-radius: 50%;
+        background: radial-gradient(circle at center, rgba(244, 171, 96, 0.26), transparent 70%);
+        filter: blur(14px);
+        opacity: 0.8;
+      }
+
+      .scene-board {
+        position: absolute;
+        left: 50%;
+        bottom: 38px;
+        width: 100%;
+        height: calc(100% - 10px);
+        transform: translateX(-50%);
+        overflow: visible;
+      }
+
+      .scene-board::before {
+        content: "";
+        position: absolute;
+        inset: 6px 0 18px;
+        border-radius: 36px;
+        background:
+          radial-gradient(circle at 50% 14%, rgba(255, 225, 183, 0.07), transparent 30%),
+          linear-gradient(180deg, rgba(0, 0, 0, 0.1), transparent 28%, transparent 72%, rgba(0, 0, 0, 0.12));
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .box-img,
+      .hero-opened {
+        position: absolute;
+        left: 50%;
+        user-select: none;
+        -webkit-user-drag: none;
+        pointer-events: none;
+      }
+
+      .box-img,
+      .hero-opened {
+        transition:
+          opacity 0.24s ease,
+          transform 0.32s ease,
+          filter 0.32s ease;
+        filter: drop-shadow(0 18px 26px rgba(0, 0, 0, 0.24));
+        z-index: 1;
+      }
+
+      .box-closed {
+        bottom: 0;
+        width: 78%;
+        transform: translateX(-50%);
+      }
+
+      .hero-opened {
+        bottom: 2px;
+        width: 86%;
+        opacity: 0;
+        transform: translateX(-50%) translateY(34px) scale(0.93);
+      }
+
+      .stage.is-shaking .box-closed {
+        animation: box-shake 0.54s ease-in-out;
+      }
+
+      .stage.is-opened .box-closed {
+        opacity: 0;
+        transform: translateX(-50%) translateY(14px) scale(0.94);
+      }
+
+      .stage.is-opened .hero-opened {
+        opacity: 1;
+        animation: open-reveal 0.5s cubic-bezier(.2, .9, .25, 1.15) forwards;
+      }
+
+      @keyframes box-shake {
+        0%, 100% { transform: translateX(-50%) rotate(0deg) translateY(0); }
+        12% { transform: translateX(calc(-50% - 3px)) rotate(-1.8deg) translateY(-2px); }
+        24% { transform: translateX(calc(-50% + 4px)) rotate(1.7deg) translateY(0); }
+        40% { transform: translateX(calc(-50% - 5px)) rotate(-2.2deg) translateY(-4px); }
+        58% { transform: translateX(calc(-50% + 5px)) rotate(2deg) translateY(0); }
+        76% { transform: translateX(calc(-50% - 2px)) rotate(-1deg) translateY(-1px); }
+      }
+
+      @keyframes open-reveal {
+        0% {
+          transform: translateX(-50%) translateY(34px) scale(0.93);
+          opacity: 0;
+        }
+        68% {
+          transform: translateX(-50%) translateY(-18px) scale(1.02);
+          opacity: 1;
+        }
+        100% {
+          transform: translateX(-50%) translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+
+
+      .tap-hint {
+        position: absolute;
+        left: 50%;
+        bottom: 0;
+        transform: translateX(-50%);
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 176px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(18, 11, 8, 0.82);
+        border: 1px solid var(--line);
+        color: var(--paper);
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .tap-hint::before,
+      .tap-hint::after {
+        content: "◇";
+        color: rgba(255, 214, 161, 0.72);
+        font-size: 11px;
+      }
+
+      .tap-hint span {
+        margin: 0 10px;
+      }
+
+      .result-panel {
+        flex: 0 0 auto;
+        margin-top: 6px;
+        padding: 12px 12px 14px;
+        border-radius: 24px;
+        background: linear-gradient(180deg, rgba(68, 37, 24, 0.94), rgba(38, 21, 15, 0.96));
+        border: 1px solid var(--line);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.05),
+          0 18px 34px rgba(0, 0, 0, 0.24);
+      }
+
+      .result-top {
+        text-align: center;
+        font-size: 12px;
+        color: rgba(247, 225, 192, 0.58);
+      }
+
+      .result-title {
+        margin: 8px 0 0;
+        text-align: center;
+        font-size: 32px;
+        line-height: 1;
+        font-weight: 800;
+        color: var(--gold-1);
+      }
+
+      .result-content {
+        margin-top: 10px;
+        padding: 14px 14px;
+        border-radius: 22px;
+        background: rgba(104, 58, 31, 0.42);
+        border: 1px solid rgba(255, 214, 161, 0.14);
+        text-align: center;
+        font-size: 15px;
+        line-height: 1.5;
+      }
+
+      .footer-note {
+        margin-top: 14px;
+        text-align: center;
+        font-size: 11px;
+        letter-spacing: 2px;
+        color: rgba(247, 225, 192, 0.42);
+      }
+    </style>
+  </head>
+  <body class="couple">
+    <div class="app">
+      <div class="shell">
+        <header class="topbar">
+          <h1 class="title">抽到啥就聊啥</h1>
+          <div class="subtitle">一张一问 · 直接开聊</div>
+          <div class="modes">
+            <button class="mode active" data-mode="couple">
+              <strong>情侣版</strong>
+              <span>回忆 · 问答 · 探索</span>
+            </button>
+            <button class="mode" data-mode="party">
+              <strong>聚会版</strong>
+              <span>破冰 · 趣味 · 嗨聊</span>
+            </button>
+          </div>
+        </header>
+
+        <section class="stage" id="stage">
+          <div class="ambient"></div>
+          <div class="hero-wrap" id="heroWrap">
+            <div class="scene-glow"></div>
+            <div class="scene-board">
+              <img class="box-img box-closed" id="boxClosed" src="./box-closed-clean.png" alt="关闭的卡牌盒" />
+              <img class="hero-opened" id="heroOpened" src="./hero-memory.png" alt="回忆卡牌主视觉" />
+            </div>
+            <div class="tap-hint" id="tapHint"><span>点击卡牌开始抽取</span></div>
+          </div>
+        </section>
+
+        <section class="result-panel">
+          <div class="result-top">刚刚抽到的是</div>
+          <div class="result-title" id="resultTitle">第一卡</div>
+          <div class="result-content" id="resultContent">点一下卡牌，抽出这一轮最适合说出口的话。</div>
+          <div class="footer-note" id="footerNote">每一张，都是一次靠近</div>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var DATA = {
+          couple: {
+            footer: "每一张，都是一次靠近",
+            categories: [
+              {
+                key: "memory",
+                title: "回忆",
+                image: "./card-memory.png",
+                hero: "./hero-memory.png",
+                lines: [
+                  "回忆第一次见面时，你对我的第一印象。",
+                  "如果可以把我们的一天复制下来，你最想定格哪一个时刻？",
+                  "回忆一次吵架或误会，讲讲你当时最真实的感受。",
+                  "讲一个只有你们两个才懂的暗号或笑点。",
+                  "说一件你一直记着、但还没认真感谢过对方的小事。",
+                  "分享一个你小时候的习惯，看看对方有没有猜中过。",
+                  "说说最近一次你觉得被理解的瞬间，是因为什么。",
+                  "轮流讲一个“我当时没说，但其实很在意”的瞬间。",
+                  "讲一件最近让你对这段关系更有信心的事。",
+                  "说一个你觉得我们很像搭档的场景。",
+                  "回忆一个你现在想起来还会偷笑的小片段。"
+                ]
+              },
+              {
+                key: "qa",
+                title: "问答",
+                image: "./card-qa.png",
+                hero: "./hero-qa.png",
+                lines: [
+                  "说一句你今天最想从对方那里听到的话。",
+                  "问对方一个你一直好奇、但还没认真问出口的问题。",
+                  "用三个词形容此刻你眼里的对方。",
+                  "说一个你最近想逃避的话题，但今天愿意慢慢聊一聊。",
+                  "问对方：最近有什么心事，是你想陪我一起承担的？",
+                  "问问对方：如果今天只能留下一句真心话，你最想说什么？",
+                  "轮流完成句子：当你这样对我时，我会更想靠近你______。",
+                  "说出一件你希望对方继续保持的温柔举动。",
+                  "说说你最近最累的事，并告诉对方你最需要什么支持。",
+                  "现在闭眼 5 秒，再说出你最想抱住对方的原因。",
+                  "如果给这段关系写一句广告语，你会写什么？",
+                  "问对方：最近你最想被理解的一件事是什么？"
+                ]
+              },
+              {
+                key: "explore",
+                title: "探索",
+                image: "./card-explore.png",
+                hero: "./hero-explore.png",
+                lines: [
+                  "告诉对方，你最近一次偷偷心动，是因为什么。",
+                  "抱住对方 10 秒，然后坦白一个小情绪。",
+                  "夸对方一个别人很少注意到的优点。",
+                  "说出一个你希望我们一起实现的小愿望。",
+                  "今天把手机放下 5 分钟，只认真听彼此说话。",
+                  "如果今晚只能安排一件小浪漫，你最想做什么？",
+                  "轮流补完这句话：和你在一起时，我最有安全感的瞬间是______。",
+                  "轮流说一件你们在一起后自己变好的地方。",
+                  "如果下周只能安排一次两人时光，你想怎么过？",
+                  "说一句你希望未来一个月里我们一起坚持的小约定。",
+                  "夸对方一个你以前没意识到、最近才发现的魅力。",
+                  "如果要给彼此安排一个惊喜小任务，你会安排什么？",
+                  "说一个你们还没完成，但很想一起实现的小计划。"
+                ]
+              }
+            ]
+          },
+          party: {
+            footer: "每一张，都是一轮气氛起飞",
+            categories: [
+              {
+                key: "icebreak",
+                title: "破冰",
+                image: "./card-icebreak.png",
+                hero: "./hero-icebreak.png",
+                lines: [
+                  "这一轮所有人禁止说“我觉得”，谁先说谁再抽一张。",
+                  "指定两个人，互相用夸张语气夸对方 15 秒。",
+                  "现在选一个人，和他完成一个无声默契挑战。",
+                  "左手边的人给你出一个 20 秒即兴表演题。",
+                  "全桌人轮流说一个“只有熟人才知道”的小习惯。",
+                  "抽到的人指定一个主题，全桌 10 秒内接龙，不许停顿。",
+                  "和右手边的人互相模仿走路姿势，谁先笑谁输。",
+                  "现在开始 30 秒，所有人只能用表情和手势交流。",
+                  "全桌一起选一个人，让他即兴当 20 秒主持人。",
+                  "抽到的人给现场某个人起一个限定外号，并说明来历。",
+                  "这一轮发言必须押韵，不押韵的人喝水或做个动作。",
+                  "指定两个人，用 15 秒即兴演一段“误会现场”。"
+                ]
+              },
+              {
+                key: "fun",
+                title: "趣味",
+                image: "./card-fun.png",
+                hero: "./hero-fun.png",
+                lines: [
+                  "抽到的人模仿一个经典场景，其他人来猜。",
+                  "从现场挑一个物品，立刻编一个奇怪故事。",
+                  "抽到的人用一句话讲完一部电影，其他人来猜片名。",
+                  "每个人说一个今天最离谱的小经历，最离谱的人再抽一张。",
+                  "抽到的人现场设计一个三人能完成的小挑战，立刻执行。",
+                  "把桌上某样东西当奖杯，发表一段获奖感言。",
+                  "全桌轮流讲“我以为只有我会这样”的怪习惯。",
+                  "抽到的人模仿一种职业的工作状态，其他人猜职业。",
+                  "抽到的人分享一个自己曾经特别中二的时刻。",
+                  "现场挑两个人，互相给对方写一句一句话人物简介并读出来。",
+                  "所有人必须用电影台词腔介绍自己，最后全桌投票最上头的一位。"
+                ]
+              },
+              {
+                key: "chat",
+                title: "嗨聊",
+                image: "./card-chat.png",
+                hero: "./hero-chat.png",
+                lines: [
+                  "抽到的人要用播音腔讲一个真实社死瞬间。",
+                  "全桌投票，选出今天最像主角的人，并说明原因。",
+                  "这一轮谁先笑场，谁下一轮必须第一个发言。",
+                  "抽到的人随机点名一位，互相说出对方最像哪种动物并解释原因。",
+                  "指定一个人，模仿他发语音时的语气包三句。",
+                  "今天谁最有反差感？请大家各用一句话说明理由。",
+                  "抽到的人要用偶像剧口吻夸一位朋友，夸到全桌起鸡皮疙瘩为止。",
+                  "现在开始，下一轮回答问题前都要先说一句口头禅。",
+                  "全桌投票，谁最适合去参加恋综或真人秀，并给出标题。",
+                  "这一轮回答必须先说结论，再补过程，超时的人再抽一张。",
+                  "抽到的人发起一个真假难辨的问题，让大家投票猜真相。",
+                  "全桌轮流说一句今天最想放飞自我的宣言。"
+                ]
+              }
+            ]
+          }
+        };
+
+        var state = {
+          mode: "couple",
+          busy: false,
+          lastIndex: 0,
+          lastCategoryIndex: 0,
+          timers: []
+        };
+
+        var stage = document.getElementById("stage");
+        var heroWrap = document.getElementById("heroWrap");
+        var modeButtons = document.querySelectorAll(".mode");
+        var resultTitle = document.getElementById("resultTitle");
+        var resultContent = document.getElementById("resultContent");
+        var footerNote = document.getElementById("footerNote");
+        var tapHint = document.getElementById("tapHint");
+        var heroOpened = document.getElementById("heroOpened");
+        var audioContext = null;
+
+        function getModeConfig() {
+          return DATA[state.mode];
+        }
+
+        function getActiveCategory() {
+          return getModeConfig().categories[state.lastCategoryIndex];
+        }
+
+        function setHeroVisual(category) {
+          heroOpened.src = category.hero || category.image;
+          heroOpened.alt = category.title + "卡牌主视觉";
+        }
+
+        function getAudioContext() {
+          if (!audioContext) {
+            var Ctx = window.AudioContext || window.webkitAudioContext;
+            if (Ctx) {
+              audioContext = new Ctx();
+            }
+          }
+          return audioContext;
+        }
+
+        function playDrawSound() {
+          try {
+            var ctx = getAudioContext();
+            if (!ctx) {
+              return;
+            }
+            if (ctx.state === "suspended") {
+              ctx.resume();
+            }
+            var now = ctx.currentTime;
+
+            var osc1 = ctx.createOscillator();
+            var gain1 = ctx.createGain();
+            osc1.type = "triangle";
+            osc1.frequency.setValueAtTime(280, now);
+            osc1.frequency.exponentialRampToValueAtTime(180, now + 0.16);
+            gain1.gain.setValueAtTime(0.0001, now);
+            gain1.gain.linearRampToValueAtTime(0.08, now + 0.02);
+            gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+            osc1.connect(gain1).connect(ctx.destination);
+            osc1.start(now);
+            osc1.stop(now + 0.2);
+
+            var osc2 = ctx.createOscillator();
+            var gain2 = ctx.createGain();
+            osc2.type = "sine";
+            osc2.frequency.setValueAtTime(780, now + 0.14);
+            osc2.frequency.exponentialRampToValueAtTime(980, now + 0.34);
+            gain2.gain.setValueAtTime(0.0001, now + 0.14);
+            gain2.gain.linearRampToValueAtTime(0.05, now + 0.18);
+            gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
+            osc2.connect(gain2).connect(ctx.destination);
+            osc2.start(now + 0.14);
+            osc2.stop(now + 0.45);
+          } catch (error) {}
+        }
+
+        function vibrate(pattern) {
+          if (navigator.vibrate) {
+            navigator.vibrate(pattern);
+          }
+        }
+
+        function later(fn, delay) {
+          var id = window.setTimeout(fn, delay);
+          state.timers.push(id);
+          return id;
+        }
+
+        function clearTimers() {
+          while (state.timers.length) {
+            window.clearTimeout(state.timers.pop());
+          }
+        }
+
+        function setAppHeight() {
+          document.documentElement.style.setProperty("--app-height", window.innerHeight + "px");
+        }
+
+        function resetScene() {
+          clearTimers();
+          stage.classList.remove("is-shaking", "is-opened");
+        }
+
+        function setMode(mode) {
+          state.mode = mode;
+          document.body.className = mode;
+          state.lastCategoryIndex = 0;
+          state.lastIndex = 0;
+          footerNote.textContent = DATA[mode].footer;
+          resultTitle.textContent = "快来抽张聊天卡吧";
+          resultContent.textContent = mode === "couple"
+            ? "点击盒子，随机抽到回忆、问答或探索话题，顺着聊就行。"
+            : "点击盒子，随机抽到破冰、趣味或嗨聊话题，现场直接开聊。";
+          tapHint.querySelector("span").textContent = "点击盒子开始抽取";
+          state.busy = false;
+          resetScene();
+
+          for (var i = 0; i < modeButtons.length; i += 1) {
+            modeButtons[i].classList.toggle("active", modeButtons[i].getAttribute("data-mode") === mode);
+          }
+        }
+
+        function draw() {
+          if (state.busy) {
+            return;
+          }
+
+          state.busy = true;
+          resetScene();
+          var categories = getModeConfig().categories;
+          var categoryIndex = Math.floor(Math.random() * categories.length);
+          var category = categories[categoryIndex];
+          var contentIndex = Math.floor(Math.random() * category.lines.length);
+          state.lastCategoryIndex = categoryIndex;
+          state.lastIndex = contentIndex;
+          setHeroVisual(category);
+          tapHint.querySelector("span").textContent = "盒子摇晃中...";
+          playDrawSound();
+          vibrate([20, 40, 60]);
+          stage.classList.add("is-shaking");
+
+          later(function () {
+            stage.classList.remove("is-shaking");
+            stage.classList.add("is-opened");
+            tapHint.querySelector("span").textContent = "卡牌弹出中...";
+            vibrate([16, 24, 30]);
+          }, 540);
+
+          later(function () {
+            resultTitle.textContent = category.title + "卡";
+            resultContent.textContent = category.lines[contentIndex];
+            tapHint.querySelector("span").textContent = "点击盒子重新抽卡";
+            state.busy = false;
+          }, 980);
+        }
+
+        for (var i = 0; i < modeButtons.length; i += 1) {
+          modeButtons[i].addEventListener("click", function () {
+            if (state.busy) {
+              return;
+            }
+            setMode(this.getAttribute("data-mode"));
+          });
+        }
+
+        heroWrap.addEventListener("click", draw);
+        tapHint.addEventListener("click", draw);
+        window.addEventListener("resize", setAppHeight);
+
+        setAppHeight();
+        setMode("couple");
+      })();
+    </script>
+  </body>
+</html>

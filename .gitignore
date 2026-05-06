@@ -1,0 +1,8 @@
+.gradle/
+local.properties
+build/
+**/build/
+*.apk
+*.ap_
+.DS_Store
+captures/
